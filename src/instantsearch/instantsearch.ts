@@ -8,6 +8,7 @@ import {
   EventEmitter,
   Inject,
   PLATFORM_ID,
+  ErrorHandler,
   VERSION as AngularVersion,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
@@ -232,7 +233,7 @@ export class NgAisInstantSearch implements AfterViewInit, OnInit, OnDestroy {
 
   public instantSearchInstance: InstantSearchInstance;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: Object, private errorHandler: ErrorHandler) {}
 
   public ngOnInit() {
     this.createInstantSearchInstance(this.config);
@@ -244,6 +245,7 @@ export class NgAisInstantSearch implements AfterViewInit, OnInit, OnDestroy {
 
   public ngOnDestroy() {
     this.instantSearchInstance.removeListener('render', this.onRender);
+    this.instantSearchInstance.removeListener('error', this.onError);
     this.instantSearchInstance.dispose();
   }
 
@@ -276,6 +278,7 @@ export class NgAisInstantSearch implements AfterViewInit, OnInit, OnDestroy {
     }
     this.instantSearchInstance = instantsearch(config);
     this.instantSearchInstance.on('render', this.onRender);
+    this.instantSearchInstance.on('error', this.onError);
   }
 
   public addWidget(widget: Widget) {
@@ -295,5 +298,9 @@ export class NgAisInstantSearch implements AfterViewInit, OnInit, OnDestroy {
       results: this.instantSearchInstance.helper.lastResults,
       state: this.instantSearchInstance.helper.state,
     });
+  };
+
+  onError = (error: Object) => {
+    this.errorHandler.handleError(error);
   };
 }
